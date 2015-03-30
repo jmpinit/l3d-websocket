@@ -1,0 +1,127 @@
+<!DOCTYPE html lang="en">
+<html>
+<head>
+    <title>Compression Test</title>
+    <script src="js/jquery-1.11.0.min.js" type="text/javascript"></script>
+    <script src="js/l3dcube.js" type="text/javascript"></script>
+</head>
+<body>
+    <h1>Compression Test</h1>
+
+    <textarea id="code" rows=8 cols=64 placeholder="[1, 2, 3]"></textarea>
+
+    <br>
+    <button id="run">Run</button>
+
+    <p>input frame:</p>
+    <p id="input"></p>
+    <hr>
+
+    <p>compressed frame:</p>
+    <p id="compressed"></p>
+    <hr>
+
+    <p>frame decompressed:</p>
+    <p id="uncompressed"></p>
+    <hr>
+
+    <table>
+        <tr><td>input size</td><td id="in-size"></td></tr>
+        <tr><td>compressed size</td><td id="compressed-size"></td></tr>
+        <tr><td>compression ratio</td><td id="ratio"></td></tr>
+    </table>
+
+    <!-- polyfill -->
+    <script type="text/javascript">
+        Uint8Array.from = function(arr) {
+            var buff = new Uint8Array(arr.length);
+            for(var i = 0; i < arr.length; i++)
+                buff[i] = arr[i];
+            return buff;
+        }
+
+        Uint16Array.from = function(arr) {
+            var buff = new Uint16Array(arr.length);
+            for(var i = 0; i < arr.length; i++)
+                buff[i] = arr[i];
+            return buff;
+        }
+
+        // iterator to array
+        function collapse(iterator, base) {
+            base = base || [];
+            var el = iterator.next();
+
+            if(el.done) {
+                return base;
+            } else {
+                return collapse(iterator, base.concat(el.value));
+            }
+        }
+
+        Uint8Array.prototype.join = function(separator) {
+            values = collapse(this.values());
+            return values.join(separator);
+        }
+
+        Uint16Array.prototype.join = Uint8Array.prototype.join;
+    </script>
+
+    <script type="text/javascript">
+        var frameSize = 512;
+        var input;
+        var compressed;
+        var uncompressed;
+
+        function randomInteger(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function randomFrame(size) {
+            values = Array.apply(null, Array(size)).map(function() { return randomInteger(256); });
+            return Uint8Array.from(values);
+        };
+
+        function test() {
+            var userFunction = eval($("#code").val());
+
+            if(userFunction && typeof(userFunction) === "object") {
+                input = Uint8Array.from(userFunction);
+            } else {
+                input = randomFrame(frameSize);
+            }
+
+            compressed = lzwCompress(input);
+            uncompressed = lzwDecompress(compressed);
+        }
+
+        function display() {
+            // display data
+            
+            $("#input").text(input.join(', '));
+            $("#compressed").text(compressed.join(', '));
+            $("#uncompressed").text(uncompressed.join(', '));
+
+            // display metrics
+
+            var ratio = input.byteLength / compressed.byteLength;
+
+            $("#in-size").text(input.byteLength);
+            $("#compressed-size").text(compressed.byteLength);
+            $("#ratio").text(ratio);
+        }
+
+        function update() {
+            test();
+            display();
+        }
+    </script>
+
+    <script type="text/javascript">
+        $("#run").on("click", function() {
+            update();
+        });
+    </script>
+    </script>
+</body>
+</html>

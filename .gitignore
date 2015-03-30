@@ -46,3 +46,7 @@ libraries/Arduino/
 libraries/Tropicssl/
 ci/test-reports/
 unit/obj/
+
+# Vim
+*.swp
+*.swo
