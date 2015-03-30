@@ -50,3 +50,11 @@ exports.testGetIP = function(test) {
         test.done();
     });
 }
+
+exports.testReset = function(test) {
+    test.expect(1);
+    debug.reset(function(err) {
+        test.ok(err === undefined || err === null);
+        test.done();
+    });
+}

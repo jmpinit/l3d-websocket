@@ -94,8 +94,10 @@ function findPorts(callback) {
 function DebugInterface() {
     var interface = this;
 
-    this.callbackQueue = [];
+    this.commandCallbackQueue = [];
     this.commandQueue = [];
+
+    this.resetCallbackQueue = [];
 
     findPorts(function(err, resetPort, sparkPort) {
         if (err) throw err;
@@ -103,15 +105,25 @@ function DebugInterface() {
         interface.resetPort = resetPort;
         interface.sparkPort = sparkPort;
 
-        if (interface.sparkPort.isOpen()) {
-            interface.setupSparkPort();
-        } else {
-            interface.sparkPort.on('open', function() {
-                interface.setupSparkPort;
-            });
-        }
+        interface.setupSparkPort();
+        interface.setupResetPort();
     });
 }
+
+DebugInterface.prototype.setupResetPort = function() {
+    var interface = this;
+
+    this.resetPort.on("data", function(data) {
+        var line = data.toString().trim();
+        var callback = interface.resetCallbackQueue.shift();
+
+        if(line === "ok") {
+            callback();
+        } else {
+            callback(new Error(util.format("Unrecognized response from reset device: %s", data)));
+        }
+    });
+};
 
 DebugInterface.prototype.setupSparkPort = function() {
     var interface = this;
@@ -121,15 +133,15 @@ DebugInterface.prototype.setupSparkPort = function() {
 
         switch(data[0]) {
             case reply:
-                var callback = interface.callbackQueue.shift();
-            callback(line.slice(1, line.length));
-            break;
+                var callback = interface.commandCallbackQueue.shift();
+                callback(line.slice(1, line.length));
+                break;
             case info:
                 console.log("info:", line.slice(1, line.length));
-            break;
+                break;
             default:
                 console.log("unflagged:", line);
-            break
+                break;
         }
     });
 
@@ -138,20 +150,25 @@ DebugInterface.prototype.setupSparkPort = function() {
         var command = this.commandQueue.shift();
         this.sparkPort.write(command);
     }
-}
+};
 
 DebugInterface.prototype.ask = function(cmd, callback) {
-    this.callbackQueue.push(callback);
+    this.commandCallbackQueue.push(callback);
 
     if(this.sparkPort !== undefined && this.sparkPort.isOpen()) {
         this.sparkPort.write(cmd);
     } else {
         this.commandQueue.push(cmd);
     }
-}
+};
+
+DebugInterface.prototype.reset = function(callback) {
+    this.resetCallbackQueue.push(callback);
+    this.resetPort.write("r");
+};
 
 DebugInterface.prototype.getIP = function(callback) {
     this.ask(cmds.ip, function(ip) { callback(ip); });
-}
+};
 
 module.exports = DebugInterface;
