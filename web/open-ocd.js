@@ -2,6 +2,8 @@ var net = require('net'),
     async = require('async'),
     colors =  require('colors');
 
+var debug = false;
+
 var terminator = 0x1A;
 
 function OpenOCD() {
@@ -37,7 +39,7 @@ OpenOCD.prototype.send = function(command, callback) {
     } else {
         var message = new Buffer(command.length + 1);
 
-        console.log("command".blue, command);
+        if (debug) console.log("command".blue, command);
 
         message.write(command);
         message[message.length-1] = terminator;
@@ -49,7 +51,6 @@ OpenOCD.prototype.send = function(command, callback) {
 
 OpenOCD.prototype.when = function(state, callback) {
     if (this.state === state) {
-        console.log("already in state".magenta, state);
         callback();
     } else {
         if (!(state in this.stateHandlers)) {
@@ -79,7 +80,7 @@ OpenOCD.prototype.callEventHandlers = function(type, data) {
 OpenOCD.prototype.updateState = function(newState) {
     this.state = newState;
 
-    console.log("state".yellow, this.state);
+    if (debug) console.log("state".yellow, this.state);
 
     if (this.state in this.stateHandlers) {
         var handlers = this.stateHandlers[this.state];
@@ -97,7 +98,7 @@ OpenOCD.prototype.handleEvent = function(eventString) {
             data[parts[i]] = parts[i+1];
         }
 
-        console.log("event".green, data);
+        if (debug) console.log("event".green, data);
         
         if ('type' in data) {
             var type = data.type;
@@ -125,10 +126,6 @@ OpenOCD.prototype.handleEvent = function(eventString) {
 OpenOCD.prototype.connect = function(port, callback) {
     port = port || 6666;
 
-    this.client.on('close', function() {
-        console.log('Connection closed');
-    });
-
     this.client.on('data', (function(data) {
         var message = data.slice(0, data.length-1).toString();
 
@@ -143,7 +140,7 @@ OpenOCD.prototype.connect = function(port, callback) {
                 }
             }
         } else {
-            console.log("reply".gray, message);
+            if (debug) console.log("reply".gray, message);
             var handler = this.replyHandlers.shift();
             handler(message);
         }
@@ -154,9 +151,14 @@ OpenOCD.prototype.connect = function(port, callback) {
     });
 
     this.client.connect(port, '127.0.0.1', function() {
-        console.log('Connected');
         callback();
     });
+};
+
+OpenOCD.prototype.disconnect = function(callback) {
+    this.client.removeAllListeners();
+    this.client.end();
+    callback();
 };
 
 module.exports = OpenOCD;

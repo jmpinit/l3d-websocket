@@ -3,20 +3,19 @@ var util = require('util');
 var WebSocketClient = require('websocket').w3cwebsocket;
 var TestInterface = require('./test-interface');
 
-exports.testInterface = {
+module.exports = {
     setUp: function(callback) {
         this.cube = new TestInterface();
         this.cube.connect((function(err) {
             this.connectError = err;
-            console.log("setUp done");
             callback();
         }).bind(this));
     },
-    /*tearDown: function(callback) {
-        this.cube.reset(function() {
+    tearDown: function(callback) {
+        this.cube.disconnect(function() {
             callback();
         });
-    },*/
+    },
 
     testGetIP: function(test) {
         test.expect(5);
@@ -31,10 +30,10 @@ exports.testInterface = {
             test.ok(!ipMatcher.test("192.168"));
             test.ok(!ipMatcher.test(""));
 
+            var cube = this.cube; // FIXME
             this.cube.getIP(function(ip) {
                 test.ok(ipMatcher.test(ip), ip + " is not a valid IP address.");
                 test.ok(ip !== "0.0.0.0", "Cube failed to initialize network.");
-
                 test.done();
             });
         }
@@ -84,4 +83,3 @@ exports.testInterface = {
     //    test.expect(1);
     //}
 };*/
-

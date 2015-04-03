@@ -40,8 +40,6 @@ TestInterface.prototype.connect = function(callback) {
     this.ocd.on('semihost-message', (function(data) {
         var message = data.message.slice(1, data.message.length);
 
-        console.log("semihost-message".cyan, message);
-
         var handler = this.messageHandlers.shift();
         handler(message);
     }).bind(this));
@@ -50,38 +48,30 @@ TestInterface.prototype.connect = function(callback) {
         if (err) {
             callback(err);
         } else {
-            console.log("Sending connection commands.");
             this.ocd.send(
                 [
                     'tcl_notifications on',
                     'capture "arm semihosting enable"',
                     'reset run'
-                ],
-                function(err, replies) {
-                    console.log("initialization replies", replies);
-                }
+                ]
             );
         }
     }).bind(this));
 };
 
+TestInterface.prototype.disconnect = function(callback) {
+    this.ocd.disconnect(callback);
+};
+
 TestInterface.prototype.sendCommand = function(command, callback) {
     var ocdCommand = util.format('capture "mwb 0x%s %d"', this.commAddress.toString(16), command.charCodeAt(0));
-    console.log("command", ocdCommand);
 
     this.messageHandlers.push(callback);
     this.ocd.send(ocdCommand, function(reply) {});
 };
 
-TestInterface.prototype.reset = function(callback) {
-    this.ocd.send(['capture "reset run"', 'capture "continue"'], function(reply) {
-        callback();
-    });
-};
-
 TestInterface.prototype.getIP = function(callback) {
     this.sendCommand(commands.getIP, function(reply) {
-        console.log("getIP".magenta, reply);
         callback(reply);
     });
 };
