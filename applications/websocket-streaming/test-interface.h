@@ -8,6 +8,9 @@
 #define CMD_GET_IP      'a'
 #define CMD_DFU         'b'
 
+void reply(const char*);
+void info(const char*);
+volatile long* getCommAddress(void);
 void testTick(void);
 
 #endif

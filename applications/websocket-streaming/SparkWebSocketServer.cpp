@@ -43,6 +43,8 @@
 
 #include "SparkWebSocketServer.h"
 
+#include "test-interface.h"
+
 #include "Base64.h"
 #include "tropicssl/sha1.h"
 

@@ -174,6 +174,7 @@ SECTIONS
         
 	    . = ALIGN(4);
         _eusrstack = . ;
+        PROVIDE ( __end__ = . ); 
     } >RAM
    
     /* this is the FLASH Bank1 */

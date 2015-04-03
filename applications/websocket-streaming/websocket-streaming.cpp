@@ -6,6 +6,8 @@
 #include "l3d-cube.h"
 #include "test-interface.h"
 
+SYSTEM_MODE(MANUAL);
+
 TCPServer server = TCPServer(2525);
 SparkWebSocketServer mine(server);
 void handle(String &cmd, String &result);
@@ -24,7 +26,11 @@ void setup()
     cube.begin();
     cube.background(black);
 
-    Serial.println("Setup done");
+    while(!WiFi.ready());
+
+    setbuf(stdout, NULL);
+    printf("`comm=%lx\r\n", (long)getCommAddress());
+    __asm__("BKPT");
 }
 
 void displayFrame(String* frame, int offset)
@@ -56,7 +62,6 @@ void handle(String &data, String &result)
 {
     if(data.length() == 512) {
         displayFrame(&data, 0);
-        displayFrame(&data, 0);
     }
 
     result += String(data.length());
@@ -65,5 +70,7 @@ void handle(String &data, String &result)
 void loop()
 {
     testTick();
+    //info("pre doIt");
     mine.doIt();
+    //info("post doIt");
 }

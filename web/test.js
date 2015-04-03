@@ -1,60 +1,87 @@
 var util = require('util');
 
 var WebSocketClient = require('websocket').w3cwebsocket;
-var DebugInterface = require('./debug-interface');
+var TestInterface = require('./test-interface');
 
-var port = 2525;
+exports.testInterface = {
+    setUp: function(callback) {
+        this.cube = new TestInterface();
+        this.cube.connect((function(err) {
+            this.connectError = err;
+            console.log("setUp done");
+            callback();
+        }).bind(this));
+    },
+    /*tearDown: function(callback) {
+        this.cube.reset(function() {
+            callback();
+        });
+    },*/
 
-function connect(client) {
-    client.onerror = function(error) {
-        console.log('Connection Error', error);
+    testGetIP: function(test) {
+        test.expect(5);
+
+        if(this.connectError !== undefined) {
+            test.ok(false, "Connection error: " + this.connectError);
+            test.done();
+        } else {
+            var ipMatcher = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
+
+            test.ok(ipMatcher.test("192.168.1.1"));
+            test.ok(!ipMatcher.test("192.168"));
+            test.ok(!ipMatcher.test(""));
+
+            this.cube.getIP(function(ip) {
+                test.ok(ipMatcher.test(ip), ip + " is not a valid IP address.");
+                test.ok(ip !== "0.0.0.0", "Cube failed to initialize network.");
+
+                test.done();
+            });
+        }
     }
+};
 
-    client.onopen = function() {
-        console.log('WebSocket Client Connected');
+/*exports.testCommunication = {
+    setUp: function(callback) {
+        this.cube = new TestInterface();
+
+        this.cube.on('connect', (function() {
+            this.cube.getIP((function(ip) {
+                var address = util.format("ws://%s:%s/", ip, this.cube.port);
+                this.ws = new WebSocketClient(address);
+                callback();
+            }).bind(this));
+        }).bind(this));
+
+        this.cube.connect();
+    },
+
+    tearDown: resetCube,
+
+    testOneFrame: function(test) {
+        test.expect(1);
+
+        var frame = new ArrayBuffer(512);
+        var view = new Uint8Array(frame);
+        for (var i = 0; i < view.length; i++)
+            view[i] = Math.floor(Math.random()*256);
+
+        this.cube.ws.onmessage = function(event) {
+            var message = event.data;
+            test.ok(message === "512");
+            test.done();
+        };
 
         if (client.readyState === client.OPEN) {
-            var frame = new ArrayBuffer(512);
-            var view = new Uint8Array(frame);
-            for(var i = 0; i < view.length; i++)
-                view[i] = Math.floor(Math.random()*256);
-            client.send(frame);
-            console.log("sent frame");
+            this.cube.ws.send(frame);
+        } else {
+            this.cube.ws.onopen = function() {
+                this.cube.ws.send(frame);
+            };
         }
-    };
+    },
+    //testOverMTU: function(test) {
+    //    test.expect(1);
+    //}
+};*/
 
-    client.onclose = function() {
-        console.log('echo-protocol Client Closed');
-    };
-
-    client.onmessage = function(e) {
-        if (typeof e.data === 'string') {
-            console.log("Received: '" + e.data + "'");
-        }
-    };
-}
-
-/*var address = util.format("ws://192.168.1.5:%s/", port);
-ws = new WebSocketClient(address);
-
-console.log("connecting to", address);
-connect(ws);
-*/
-
-var debug = new DebugInterface();
-
-exports.testGetIP = function(test) {
-    test.expect(1);
-    debug.getIP(function(ip) {
-        test.ok(ip === "192.168.1.5");
-        test.done();
-    });
-}
-
-exports.testReset = function(test) {
-    test.expect(1);
-    debug.reset(function(err) {
-        test.ok(err === undefined || err === null);
-        test.done();
-    });
-}

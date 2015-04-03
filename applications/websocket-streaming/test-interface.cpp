@@ -1,24 +1,28 @@
 #include "application.h"
 #include "test-interface.h"
 
-void reply(char* msg)
+// a value in memory for the host to use to communicate with us
+volatile long comm = 0;
+static volatile long* testCommAddress = &comm;
+
+void reply(const char* msg)
 {
-    Serial.write(REPLY);
-    Serial.println(msg);
+    printf("%c%s\r\n", REPLY, msg);
 }
 
-void info(char* msg)
+void info(const char* msg)
 {
-    Serial.write(INFO);
-    Serial.println(msg);
+    printf("%c%lu %s\r\n", INFO, micros(), msg);
+}
+
+volatile long* getCommAddress() {
+    return testCommAddress;
 }
 
 void testTick()
 {
-    if (Serial.available() > 0) {
-        char c = Serial.read();
-
-        switch(c) {
+    if (comm != 0) {
+        switch (comm) {
             case CMD_IDENTIFY:
             {
                 reply("spark");
@@ -43,7 +47,16 @@ void testTick()
                 System.bootloader();
                 break;
             }
+
+            case 'f':
+                reply("ok");
+                while(true) {
+                    memcpy((void*)random(0xFFFFFFFF), (void*)random(0xFFFFFFFF), 256);
+                }
+                break;
         }
+
+        comm = 0;
     }
 }
 

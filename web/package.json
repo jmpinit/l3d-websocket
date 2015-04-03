@@ -2,6 +2,7 @@
   "author": "Owen Trueblood <owen@owentrueblood.me>",
   "dependencies": {
     "async": "^0.9.0",
+    "colors": "^1.0.3",
     "nodeunit": "^0.9.1",
     "serialport": "^1.6.3",
     "websocket": "^1.0.18"
