@@ -6,7 +6,7 @@
 #include "l3d-cube.h"
 #include "test-interface.h"
 
-SYSTEM_MODE(MANUAL);
+//SYSTEM_MODE(MANUAL);
 
 TCPServer server = TCPServer(2525);
 SparkWebSocketServer mine(server);
@@ -28,8 +28,10 @@ void setup()
 
     while(!WiFi.ready());
 
-    setbuf(stdout, NULL);
-    printf("`comm=%lx\r\n", (long)getCommAddress());
+    char msg[16];
+    sprintf(msg, "comm=%x", DCRDR_ADDR);
+    reply(msg);
+
     __asm__("BKPT");
 }
 

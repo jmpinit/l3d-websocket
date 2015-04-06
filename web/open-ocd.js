@@ -2,7 +2,7 @@ var net = require('net'),
     async = require('async'),
     colors =  require('colors');
 
-var debug = false;
+var debug = true;
 
 var terminator = 0x1A;
 

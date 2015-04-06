@@ -3,21 +3,28 @@ var util = require('util');
 var WebSocketClient = require('websocket').w3cwebsocket;
 var TestInterface = require('./test-interface');
 
+function startInterface(callback) {
+    var cube = new TestInterface();
+    cube.connect(function(err) {
+        callback(err, cube);
+    });
+}
+
 module.exports = {
-    setUp: function(callback) {
-        this.cube = new TestInterface();
-        this.cube.connect((function(err) {
+    setUp: function (callback) {
+        startInterface((function(err, cube) {
             this.connectError = err;
+            this.cube = cube;
             callback();
         }).bind(this));
     },
-    tearDown: function(callback) {
+    tearDown: function (callback) {
         this.cube.disconnect(function() {
             callback();
         });
     },
 
-    testGetIP: function(test) {
+    testGetIP: function (test) {
         test.expect(5);
 
         if(this.connectError !== undefined) {
@@ -40,22 +47,34 @@ module.exports = {
     }
 };
 
-/*exports.testCommunication = {
-    setUp: function(callback) {
-        this.cube = new TestInterface();
+exports.testCommunication = {
+    setUp: function (callback) {
+        startInterface((function(err, cube) {
+            this.connectError = err;
+            this.cube = cube;
 
-        this.cube.on('connect', (function() {
             this.cube.getIP((function(ip) {
                 var address = util.format("ws://%s:%s/", ip, this.cube.port);
                 this.ws = new WebSocketClient(address);
                 callback();
             }).bind(this));
         }).bind(this));
-
-        this.cube.connect();
     },
+    tearDown: function (callback) {
+        var ctx = this;
 
-    tearDown: resetCube,
+        async.parallel([
+            function (cb) {
+                ctx.cube.disconnect(function() {
+                    cb();
+                });
+            },
+            function (cb) {
+                ctx.ws.close();
+                cb();
+            }
+        ], function(err) { callback(); });
+    },
 
     testOneFrame: function(test) {
         test.expect(1);
@@ -82,4 +101,4 @@ module.exports = {
     //testOverMTU: function(test) {
     //    test.expect(1);
     //}
-};*/
+};

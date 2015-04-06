@@ -146,9 +146,8 @@ LDFLAGS += -T$(PROJECT_DIR)linker/linker_stm32f10x_md_dfu.ld -nostartfiles -Xlin
 LDFLAGS += -L$(PROJECT_DIR)$(LIB_CORE_COMMON_PATH)build -lcore-common-lib
 LDFLAGS += -L$(PROJECT_DIR)$(LIB_CORE_COMMUNICATION_PATH)build -lcore-communication-lib
 LDFLAGS += -Wl,-Map,$(TARGETDIR)$(TARGET).map
-#LDFLAGS += --specs=nano.specs -lc -lnosys
+LDFLAGS += --specs=nano.specs -lc -lnosys
 LDFLAGS += -u _printf_float
-LDFLAGS += --specs=rdimon.specs -lc -lrdimon
 
 # Assembler flags
 ASFLAGS =  -g3 -gdwarf-2 -mcpu=cortex-m3 -mthumb 

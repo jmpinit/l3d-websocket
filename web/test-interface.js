@@ -51,7 +51,6 @@ TestInterface.prototype.connect = function(callback) {
             this.ocd.send(
                 [
                     'tcl_notifications on',
-                    'capture "arm semihosting enable"',
                     'reset run'
                 ]
             );
@@ -64,7 +63,7 @@ TestInterface.prototype.disconnect = function(callback) {
 };
 
 TestInterface.prototype.sendCommand = function(command, callback) {
-    var ocdCommand = util.format('capture "mwb 0x%s %d"', this.commAddress.toString(16), command.charCodeAt(0));
+    var ocdCommand = util.format('capture "mwb 0x%s %d"', (this.commAddress + 3).toString(16), command.charCodeAt(0));
 
     this.messageHandlers.push(callback);
     this.ocd.send(ocdCommand, function(reply) {});

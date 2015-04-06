@@ -127,7 +127,7 @@ void _exit(int status)
  *            __Stack_Init marks the bottom of the stack, as reserved
  *            in the linker script (../linker/linker_stm32f10x_md*.ld)
  */
-/*caddr_t _sbrk(int incr)
+caddr_t _sbrk(int incr)
 {
 	extern char _end, __Stack_Init;
 	static char *heap_end = &_end;
@@ -141,7 +141,7 @@ void _exit(int status)
 	}
 
 	return (caddr_t) prev_heap_end;
-}*/
+}
 
 /* Bare metal, no processes, so error */
 int _kill(int pid, int sig)
