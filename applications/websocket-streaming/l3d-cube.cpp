@@ -48,7 +48,7 @@ void Cube::begin(void) {
   @param x, y, z Coordinate of the LED to set.
   @param col Color to set the LED to.
   */
-void Cube::setVoxel(int x, int y, int z, Color col)
+void Cube::setVoxel(unsigned int x, unsigned int y, unsigned int z, Color col)
 {
   if(x >= 0 && y >= 0 && z >= 0 &&
       x < this->size && y < this->size && z < this->size) {

@@ -55,7 +55,7 @@ class Cube
     Cube(unsigned int s, unsigned int mb);
     Cube(void);
 
-    void setVoxel(int x, int y, int z, Color col);
+    void setVoxel(unsigned int x, unsigned int y, unsigned int z, Color col);
     void setVoxel(Point p, Color col);
     Color getVoxel(int x, int y, int z);
     Color getVoxel(Point p);
