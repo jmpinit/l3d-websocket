@@ -1,3 +1,5 @@
 #!/usr/bin/env node
+
 var reporter = require('nodeunit').reporters.default;
-reporter.run(['test.js']);
+
+reporter.run(['test-basics.js']);
