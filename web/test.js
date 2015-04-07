@@ -1,4 +1,5 @@
-var util = require('util');
+var util = require('util')
+    async = require('async');
 
 var WebSocketClient = require('websocket').w3cwebsocket;
 var TestInterface = require('./test-interface');
@@ -10,7 +11,7 @@ function startInterface(callback) {
     });
 }
 
-module.exports = {
+module.exports.testInterface = {
     setUp: function (callback) {
         startInterface((function(err, cube) {
             this.connectError = err;
@@ -47,7 +48,7 @@ module.exports = {
     }
 };
 
-exports.testCommunication = {
+module.exports.testCommunication = {
     setUp: function (callback) {
         startInterface((function(err, cube) {
             this.connectError = err;
@@ -79,23 +80,45 @@ exports.testCommunication = {
     testOneFrame: function(test) {
         test.expect(1);
 
+        var done = false;
+
         var frame = new ArrayBuffer(512);
         var view = new Uint8Array(frame);
         for (var i = 0; i < view.length; i++)
             view[i] = Math.floor(Math.random()*256);
 
-        this.cube.ws.onmessage = function(event) {
+        this.ws.onerror = function(err) {
+            if (done) return;
+            done = true;
+
+            console.log(err);
+            test.ok(false);
+            test.done();
+        };
+
+        this.ws.onclose = function() {
+            if (done) return;
+            done = true;
+
+            test.ok(false);
+            test.done();
+        };
+
+        this.ws.onmessage = function(event) {
+            if (done) return;
+            done = true;
+
             var message = event.data;
             test.ok(message === "512");
             test.done();
         };
 
-        if (client.readyState === client.OPEN) {
-            this.cube.ws.send(frame);
+        if (this.ws.readyState === this.ws.OPEN) {
+            this.ws.send(frame);
         } else {
-            this.cube.ws.onopen = function() {
-                this.cube.ws.send(frame);
-            };
+            this.ws.onopen = (function() {
+                this.ws.send(frame);
+            }).bind(this);
         }
     },
     //testOverMTU: function(test) {

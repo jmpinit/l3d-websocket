@@ -2,7 +2,7 @@ var net = require('net'),
     async = require('async'),
     colors =  require('colors');
 
-var debug = true;
+var debug = false;
 
 var terminator = 0x1A;
 
@@ -158,6 +158,7 @@ OpenOCD.prototype.connect = function(port, callback) {
 OpenOCD.prototype.disconnect = function(callback) {
     this.client.removeAllListeners();
     this.client.end();
+    this.client.destroy();
     callback();
 };
 

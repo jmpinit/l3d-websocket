@@ -9,7 +9,7 @@ var commands = {
 
 function TestInterface() {
     this.ocd = new OpenOCD();
-    this.port = 6666;
+    this.port = 2525;
 }
 
 TestInterface.prototype._grabLinkInfo = function(message) {
@@ -44,7 +44,7 @@ TestInterface.prototype.connect = function(callback) {
         handler(message);
     }).bind(this));
 
-    this.ocd.connect(this.port, (function(err) {
+    this.ocd.connect(6666, (function(err) {
         if (err) {
             callback(err);
         } else {
